@@ -1,17 +1,11 @@
-/*
-Este script tranforma una matriz de genotipos con el siguiente formato:
-ID Multiplex/Panel Marker1.Size1 Marker1.Size2 Marker2.Size1 Marker2.Size2 ... Marker.n
-
-a formato MsatAllele
-SampleName Panel Marker Size1 Size2
-*/
-
-
+# Este script tranforma una matriz de genotipos con el siguiente formato:
+# ID Multiplex/Panel Marker1.Size1 Marker1.Size2 Marker2.Size1 Marker2.Size2 ... Marker.n
+# a formato MsatAllele
+# SampleName Panel Marker Size1 Size2
 df2msatallele<-function(placa.multiplex){
+  # La entrada de la función es la dirección del archivo *.csv que tiene los genotipos
   read.csv(placa.multiplex,header=T)->placa.p
-  # 
-  
-  # Reordenar los marcadores para que queden hacia abajo
+  ######## Reordenar los marcadores para que queden hacia abajo
   (length(colnames(placa.p))-2)->n.primers 
   # cantidad de primers en la placa
   
@@ -29,12 +23,9 @@ df2msatallele<-function(placa.multiplex){
   # Este es el archivo final donde se van a guardar todos los primers del
   # multiplex i
   ######################################################################################
-  
-  seq(from=3,to=(n.primers+2),by = 2)->order
-  
+  seq(from=3,to=(n.primers+2),by = 2)->order # Con este orden no va a leer las 2 primeras columnas
   for(r in order)
   {
-    
     placa.p[,r]->GMdata.temp[,4]
     placa.p[,r+1]->GMdata.temp[,5]
     # Mete los alelos en las columnas correspondientes
@@ -52,6 +43,6 @@ df2msatallele<-function(placa.multiplex){
   }
   rm(r)
   as.data.frame(GMdata)->GMdata
-  colnames(GMdata)<-c("Sample Name","Panel","Marker","Size1","Size2")
+  colnames(GMdata)<-c("SampleName","Panel","Marker","Size1","Size2")
   GMdata
 }

@@ -1,58 +1,47 @@
-A2B.points <- function(M,prop=0.10)
-{
-  segmentos<-NULL
-  
-    for(i in 1:length(M[,1]))
-      {
-    
-          linea<-M[i,c(1,3,4,5)] # Inicio de la línea
-          ### Ecuación de la recta
-          x1<-as.numeric(as.vector(M[i,4]))
-          x2<-as.numeric(as.vector(M[i,6]))
-          y1<-as.numeric(as.vector(M[i,5]))
-          y2<-as.numeric(as.vector(M[i,7]))
-          
-          if((x1-x2)==0 && (y1-y2)==0)
-            {
-              end<-M[i,c(2,3,4,5)];rownames(end)<-NULL;colnames(linea)->colnames(end)
-              linea<-rbind(linea,end) # Final de la línea
-      
-            }else{
-      
-              m<-((y2-y1)/(x2-x1))
-              b<- (y1-(m*x1))
-      
-              ### Pitágoras
-              cat.x  <-max(x1,x2)-min(x1,x2) # Catéto X.
-              cat.y  <-max(y1,y2)-min(y1,y2) # Catéto y.
-              hip    <-sqrt((cat.x^2)+(cat.y^2)) # Hipótenusa que se forma entre los puntos.
-              
-              ### Generar los puntos sobre la recta
-              deltax <-(hip*prop) # Número de incrementos que tedrá x.
-              n.vert   <-cat.x%/%deltax # Número de vertices.
-              vert<-1 # Primer Vértice luego del inicio de la recta
-              
-              #plot(c(x1,x2),c(y1,y2))
-              
-                    while (vert <= n.vert) 
-                      {
-                          xi<-round((min(x1,x2)+(deltax*vert)),4)
-                          yi<-round(((m*xi)+b),4)
-                          v<-cbind(paste(linea[1,1],".",vert,sep = ""),as.character(linea[1,2]),xi,yi)
-                          colnames(linea)->colnames(v);rownames(v)<-NULL;as.data.frame(v)->v
-                          linea<-rbind(linea,v)
-                          vert<-vert+1
-                          #points(xi,yi)
-                
-                        }
-              
-              end<-M[i,c(2,3,4,5)];rownames(end)<-NULL;colnames(linea)->colnames(end)
-              linea<-rbind(linea,end) # Final de la línea
-              
-            }
-    
-            segmentos<-rbind(segmentos,linea)
-        }
+# "m" es una matriz de 3 columnas, la primera contiene el ID de los puntos
+# la segunda y tercera columna contiene información sobre las coordenadas
+# geográficas, que deben estár proyectadas si se requiere que las distancias
+# obtenidas representen medidas reales en el espacio.
+A2B<-function(m,densidad){
+nrow(m)
+distancias=NULL
 
-  return(segmentos)  
+for (i in 1:nrow(m)) {
+  
+  for(j in 1:nrow(m))
+  {
+    x<-c(as.numeric(as.vector(m[i,2])),as.numeric(as.vector(m[j,2])))
+    y<-c(as.numeric(as.vector(m[i,3])),as.numeric(as.vector(m[j,3])))
+    
+    
+    if((diff(x))==0)
+    {
+      
+      if((diff(y))==0)
+      {
+        C1<-cbind(paste(m[i,1],m[j,1],sep = "/"),x[1],y[1])
+      }else{
+        a<-(max(y)-min(y))/densidad
+        dY<-seq(from=min(y), to=max(y), by=a)
+        dX<-rep(x[1],length(dY))
+        comp<-rep(paste(m[i,1],m[j,1],sep = "/"),length(dX))
+        C1<-cbind(comp,dX,dY)
+        }
+      
+    }else{
+      pend<-(diff(y)) / (diff(x))
+      b<- (y[1]-(pend*x[1]))
+      s<-(max(x)-min(x))/densidad
+      dX<-seq(from=min(x), to=max(x), by=s)
+      dY<-apply(as.data.frame(dX),1,function(x){(pend*x)+b})
+      comp<-rep(paste(m[i,1],m[j,1],sep = "/"),length(dX))
+      C1<-cbind(comp,dX,dY)
+    }
+    distancias<-rbind(distancias,C1)
+  }
+  
+}
+as.data.frame(distancias)->distancias
+colnames(distancias)<-c("pares","X","Y")
+return(distancias)
 }
